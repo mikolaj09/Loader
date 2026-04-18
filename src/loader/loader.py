@@ -5,7 +5,7 @@ import json
 import configparser
 import arcade
 import PIL.Image
-from typing import Callable, Any
+from typing import Callable, Any, Mapping
 
 
 THREAD = 1
@@ -96,7 +96,7 @@ class Loader:
         raise KeyError(f"There is no thread with name {thread_name}")
 
     @staticmethod
-    def load_folder_of_graphics(folder: str, scale: float = 1, mode='nearest') -> list:
+    def load_folder_of_graphics(folder: str, scale: float = 1, resampling_filter='nearest') -> list:
         """Static method which loads graphics from folder without threading."""
 
         RESAMPLING_MAP = {
@@ -108,7 +108,7 @@ class Loader:
             "lanczos": PIL.Image.Resampling.LANCZOS,
         }
 
-        mode = RESAMPLING_MAP.get(mode.lower(), PIL.Image.Resampling.NEAREST)
+        resampling_filter = RESAMPLING_MAP.get(resampling_filter.lower(), PIL.Image.Resampling.NEAREST)
 
         try:
             base = pathlib.Path(__file__).parent
@@ -123,7 +123,7 @@ class Loader:
                 continue
 
             sprite = PIL.Image.open(pathlib.Path(image)).convert('RGBA')
-            sprite = sprite.resize((int(sprite.size[0] * scale), int(sprite.size[1] * scale)), mode)
+            sprite = sprite.resize((int(sprite.size[0] * scale), int(sprite.size[1] * scale)), resampling_filter)
             texture = arcade.Texture(sprite)
 
             sprite = arcade.Sprite(path_or_texture=texture)
@@ -147,7 +147,7 @@ class Loader:
 
     @staticmethod
     def load_ini_file(file_name: str) -> dict:
-        """Static method which loads ini file without threading."""
+        """Static method which loads INI file without threading."""
 
         config = configparser.ConfigParser()
         config.read(file_name)
@@ -169,3 +169,13 @@ class Loader:
 
         with open(file_name, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4)
+
+    @staticmethod
+    def save_ini_file(data: Mapping[str, Mapping[str, str]], file_name: str) -> None:
+        """Static method which saves INI file."""
+
+        config = configparser.ConfigParser()
+        config.read_dict(data)
+
+        with open(file_name, 'w', encoding='utf-8') as file:
+            config.write(file)
