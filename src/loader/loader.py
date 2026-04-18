@@ -3,7 +3,8 @@ import threading
 import pathlib
 import json
 import configparser
-from arcade import Sprite
+import arcade
+import PIL.Image
 from typing import Callable, Any
 
 
@@ -95,8 +96,19 @@ class Loader:
         raise KeyError(f"There is no thread with name {thread_name}")
 
     @staticmethod
-    def load_folder_of_graphics(folder: str, scale: float = 1) -> list:
+    def load_folder_of_graphics(folder: str, scale: float = 1, mode='nearest') -> list:
         """Static method which loads graphics from folder without threading."""
+
+        RESAMPLING_MAP = {
+            "nearest": PIL.Image.Resampling.NEAREST,
+            "box": PIL.Image.Resampling.BOX,
+            "bilinear": PIL.Image.Resampling.BILINEAR,
+            "hamming": PIL.Image.Resampling.HAMMING,
+            "bicubic": PIL.Image.Resampling.BICUBIC,
+            "lanczos": PIL.Image.Resampling.LANCZOS,
+        }
+
+        mode = RESAMPLING_MAP.get(mode.lower(), PIL.Image.Resampling.NEAREST)
 
         try:
             base = pathlib.Path(__file__).parent
@@ -110,8 +122,11 @@ class Loader:
             if not image.is_file():
                 continue
 
-            sprite = Sprite(path_or_texture=f'{folder}/{image.name}')
-            sprite.multiply_scale(scale)
+            sprite = PIL.Image.open(pathlib.Path(image)).convert('RGBA')
+            sprite = sprite.resize((int(sprite.size[0] * scale), int(sprite.size[1] * scale)), mode)
+            texture = arcade.Texture(sprite)
+
+            sprite = arcade.Sprite(path_or_texture=texture)
             sprites.append(sprite)
 
         return sprites
