@@ -1,0 +1,15 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE (PyCharm)
+.idea/
+shelf/
+workspace.xml
+httpRequests/
+
+# System
+.DS_Store
